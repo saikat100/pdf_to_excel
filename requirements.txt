@@ -1,4 +1,6 @@
+Flask
 pdfplumber
 pandas
 openpyxl
 pypdfium2
+python-dotenv

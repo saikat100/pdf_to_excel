@@ -1,0 +1,487 @@
+:root {
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --accent: #06b6d4;
+  --bg-dark: #0f172a;
+  --glass-bg: rgba(30, 41, 59, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --success: #10b981;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Background Blobs */
+.background-blobs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  filter: blur(80px);
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.4;
+  animation: move 20s infinite alternate;
+}
+
+.blob-1 {
+  width: 400px;
+  height: 400px;
+  background: var(--primary);
+  top: -100px;
+  right: -100px;
+}
+
+.blob-2 {
+  width: 300px;
+  height: 300px;
+  background: var(--accent);
+  bottom: -50px;
+  left: -50px;
+  animation-delay: -5s;
+}
+
+.blob-3 {
+  width: 250px;
+  height: 250px;
+  background: #ec4899;
+  top: 40%;
+  left: 10%;
+  animation-delay: -10s;
+}
+
+@keyframes move {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(50px, 50px) scale(1.1);
+  }
+}
+
+/* Glass Container */
+.glass-container {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 3rem;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.logo i {
+  font-size: 2.5rem;
+  color: var(--success);
+  filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.4));
+}
+
+h1 {
+  font-family: "Outfit", sans-serif;
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+h1 span {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+/* Drop Zone */
+.drop-zone {
+  border: 2px dashed var(--glass-border);
+  border-radius: 16px;
+  padding: 3rem 1rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-align: center;
+  position: relative;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.drop-zone:hover,
+.drop-zone.dragover {
+  border-color: var(--primary);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.upload-icon {
+  font-size: 3rem;
+  color: var(--primary);
+  margin-bottom: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.drop-zone:hover .upload-icon {
+  transform: translateY(-5px);
+}
+
+.drop-zone h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.drop-zone p {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+/* Actions */
+.hidden {
+  display: none !important;
+}
+
+.file-info {
+  margin-top: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.file-details {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 500;
+}
+
+.file-details i {
+  color: #ef4444;
+  font-size: 1.25rem;
+}
+
+/* Buttons */
+button,
+.download-btn {
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: inherit;
+}
+
+.primary-btn {
+  background: var(--primary);
+  color: white;
+  padding: 0.75rem 1.5rem;
+}
+
+.primary-btn:hover {
+  background: var(--primary-hover);
+  box-shadow: 0 0 15px rgba(79, 70, 229, 0.4);
+}
+
+.download-btn {
+  background: var(--success);
+  color: white;
+  padding: 1rem 2rem;
+  text-decoration: none;
+  width: 100%;
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+}
+
+.download-btn:hover {
+  background: #059669;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  transform: translateY(-2px);
+}
+
+.secondary-btn {
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  padding: 0.5rem;
+  border: 1px solid transparent;
+}
+
+.secondary-btn:hover {
+  color: var(--text-main);
+}
+
+/* Loader */
+.loader-container {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top: 3px solid var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.progress-bar-wrap {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  margin-top: 1rem;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  width: 30%;
+  animation: loaderMove 2s infinite ease-in-out;
+}
+
+@keyframes loaderMove {
+  from {
+    transform: translateX(-100%);
+    width: 30%;
+  }
+  50% {
+    width: 60%;
+  }
+  to {
+    transform: translateX(400%);
+    width: 30%;
+  }
+}
+
+/* Result */
+.result-container {
+  text-align: center;
+  margin-top: 1rem;
+  animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.success-icon {
+  font-size: 4rem;
+  color: var(--success);
+  margin-bottom: 1rem;
+}
+
+.result-container h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.result-container p {
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+/* Footer Stats */
+.footer-stats {
+  display: flex;
+  justify-content: space-around;
+  padding-top: 2rem;
+  border-top: 1px solid var(--glass-border);
+  margin-top: 2rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-weight: 700;
+  color: var(--text-main);
+  font-size: 1.1rem;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Credits */
+.credits {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.credits a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  border-bottom: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.credits a:hover {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+/* Responsive Scaling */
+@media (max-width: 768px) {
+  .glass-container {
+    padding: 2rem;
+    width: 95%;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  .blob-1 {
+    width: 300px;
+    height: 300px;
+  }
+  .blob-2 {
+    width: 200px;
+    height: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .glass-container {
+    padding: 1.5rem 1rem;
+    margin: 1rem;
+  }
+
+  header {
+    margin-bottom: 2rem;
+  }
+
+  .logo i {
+    font-size: 2rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+  }
+
+  .drop-zone {
+    padding: 2rem 0.5rem;
+  }
+
+  .upload-icon {
+    font-size: 2.5rem;
+  }
+
+  .drop-zone h3 {
+    font-size: 1.1rem;
+  }
+
+  .footer-stats {
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+
+  .stat-value {
+    font-size: 0.9rem;
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
+  }
+}
