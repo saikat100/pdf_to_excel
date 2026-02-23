@@ -1,8 +1,7 @@
 import os
-import time
 import re
 import gc
-import pdfplumber
+import pypdfium2 as pdfium
 import pandas as pd
 
 def parse_amount(val):
@@ -17,94 +16,102 @@ def parse_amount(val):
 
 def convert_pdf_to_excel(pdf_path, excel_path):
     """
-    Core conversion logic optimized for BSP format.
+    Core conversion logic optimized for speed using pypdfium2.
+    Prevents 504 Gateway Timeout on hosting providers like PythonAnywhere.
     """
     all_rows = []
     
-    with pdfplumber.open(pdf_path) as pdf:
-        total_pages = len(pdf.pages)
+    pdf = None
+    try:
+        pdf = pdfium.PdfDocument(pdf_path)
+        total_pages = len(pdf)
         
-        chunk_size = 50 # Smaller chunks for web server memory stability
-        for start_page in range(0, total_pages, chunk_size):
-            end_page = min(start_page + chunk_size, total_pages)
+        for i in range(total_pages):
+            page = pdf[i]
+            textpage = page.get_textpage()
+            text = textpage.get_text_range()
+            if not text: continue
             
-            # Re-open in loop to clear memory pressure
-            with pdfplumber.open(pdf_path) as current_pdf:
-                for p_idx in range(start_page, end_page):
-                    page = current_pdf.pages[p_idx]
-                    text = page.extract_text(layout=True)
-                    if not text: continue
+            lines = text.split('\n')
+            current_row = None
+            
+            for line in lines:
+                parts = line.split()
+                if not parts: continue
+                
+                trnc_match = any(parts[0].startswith(code) for code in ["TKTT", "RFND", "CNCN", "ADMA", "ACMA"])
+                
+                if trnc_match and len(parts) >= 12:
+                    if current_row: all_rows.append(current_row)
                     
-                    lines = text.split('\n')
-                    current_row = None
+                    amt_idx = 6
+                    for j in range(4, len(parts)):
+                        if re.search(r'[\d,]{2,}', parts[j]) and ('.' in parts[j] or ',' in parts[j]):
+                            amt_idx = j
+                            break
                     
-                    for line in lines:
-                        parts = line.split()
-                        if not parts: continue
-                        
-                        trnc_match = any(parts[0].startswith(code) for code in ["TKTT", "RFND", "CNCN", "ADMA", "ACMA"])
-                        
-                        if trnc_match and len(parts) >= 12:
-                            if current_row: all_rows.append(current_row)
-                            
-                            amt_idx = 6
-                            for i in range(4, len(parts)):
-                                if re.search(r'[\d,]{2,}', parts[i]) and ('.' in parts[i] or ',' in parts[i]):
-                                    amt_idx = i
-                                    break
-                            
-                            nr_code = parts[4]
-                            if amt_idx == 6:
-                                stat = ""
-                                fop = parts[5]
-                            elif amt_idx == 7:
-                                stat = parts[5]
-                                fop = parts[6]
-                            else:
-                                stat = ""
-                                fop = parts[amt_idx-1] if amt_idx > 5 else ""
+                    nr_code = parts[4]
+                    if amt_idx == 6:
+                        stat = ""
+                        fop = parts[5]
+                    elif amt_idx == 7:
+                        stat = parts[5]
+                        fop = parts[6]
+                    else:
+                        stat = ""
+                        fop = parts[amt_idx-1] if amt_idx > 5 else ""
 
-                            current_row = {
-                                "TRNC": parts[0],
-                                "Number": parts[1],
-                                "Date": parts[2],
-                                "CPUI": parts[3],
-                                "Code": nr_code,
-                                "STAT": stat,
-                                "FOP": fop,
-                                "Transaction Amount": parse_amount(parts[amt_idx]),
-                                "FARE Amount": parse_amount(parts[amt_idx+1]),
-                                "TAX": parts[amt_idx+2] if len(parts) > amt_idx+2 else "", 
-                                "F&C": " ".join(parts[amt_idx+3 : -7]), 
-                                "PEN Amount": 0.0,
-                                "COBL Amount": parse_amount(parts[-7]),
-                                "STD Rate": parse_amount(parts[-6]),
-                                "STD Amt": parse_amount(parts[-5]),
-                                "SUPP Rate": parse_amount(parts[-4]),
-                                "SUPP Amt": parse_amount(parts[-3]),
-                                "Comm": parse_amount(parts[-2]),
-                                "Payable": parse_amount(parts[-1])
-                            }
-                        elif current_row:
-                            m_parts = line.split()
-                            if m_parts and len(m_parts) <= 4:
-                                for i, part in enumerate(m_parts):
-                                    if re.match(r'[\d,.]+', part) and i+1 < len(m_parts) and len(m_parts[i+1]) == 2:
-                                        val, code = part, m_parts[i+1]
-                                        if code in ["G8", "TS", "IO", "T2", "P7", "P8", "BD", "UT", "E5", "E7"]:
-                                            current_row["TAX"] += f" {val} {code}"
-                                        elif code in ["YQ", "F&C"]:
-                                            current_row["F&C"] += f" {val} {code}"
-                        
-                        if "TOTAL" in line and "ISSUES" not in line:
-                             if current_row:
-                                all_rows.append(current_row)
-                                current_row = None
-                    
-                    if current_row:
+                    current_row = {
+                        "TRNC": parts[0],
+                        "Number": parts[1],
+                        "Date": parts[2],
+                        "CPUI": parts[3],
+                        "Code": nr_code,
+                        "STAT": stat,
+                        "FOP": fop,
+                        "Transaction Amount": parse_amount(parts[amt_idx]),
+                        "FARE Amount": parse_amount(parts[amt_idx+1]),
+                        "TAX": parts[amt_idx+2] if len(parts) > amt_idx+2 else "", 
+                        "F&C": " ".join(parts[amt_idx+3 : -7]), 
+                        "COBL Amount": parse_amount(parts[-7]),
+                        "STD Rate": parse_amount(parts[-6]),
+                        "STD Amt": parse_amount(parts[-5]),
+                        "SUPP Rate": parse_amount(parts[-4]),
+                        "SUPP Amt": parse_amount(parts[-3]),
+                        "Comm": parse_amount(parts[-2]),
+                        "Payable": parse_amount(parts[-1])
+                    }
+                elif current_row:
+                    m_parts = line.split()
+                    if m_parts and len(m_parts) <= 4:
+                        for j, part in enumerate(m_parts):
+                            if re.match(r'[\d,.]+', part) and j+1 < len(m_parts) and len(m_parts[j+1]) == 2:
+                                val, code = part, m_parts[j+1]
+                                if code in ["G8", "TS", "IO", "T2", "P7", "P8", "BD", "UT", "E5", "E7"]:
+                                    current_row["TAX"] += f" {val} {code}"
+                                elif code in ["YQ", "F&C"]:
+                                    current_row["F&C"] += f" {val} {code}"
+                
+                if "TOTAL" in line and "ISSUES" not in line:
+                     if current_row:
                         all_rows.append(current_row)
                         current_row = None
-            gc.collect()
+            
+            if current_row:
+                all_rows.append(current_row)
+                current_row = None
+            
+            # Periodically collect garbage for large files
+            if i % 100 == 0:
+                gc.collect()
+        
+    except Exception as e:
+        print(f"Error during conversion: {e}")
+        return False
+    finally:
+        if pdf:
+            pdf.close()
+
 
     if all_rows:
         df = pd.DataFrame(all_rows)
@@ -116,3 +123,4 @@ def convert_pdf_to_excel(pdf_path, excel_path):
         pd.DataFrame(data_list).to_excel(excel_path, index=False, header=False)
         return True
     return False
+

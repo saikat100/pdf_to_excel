@@ -1,5 +1,4 @@
 Flask
-pdfplumber
 pandas
 openpyxl
 pypdfium2
